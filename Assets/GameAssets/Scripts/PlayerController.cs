@@ -5,9 +5,6 @@
 
 #region usings
 using Game.Controller.Game;
-using System;
-using System.Threading;
-using Unity.VisualScripting;
 using UnityEngine;
 #endregion
 
@@ -17,11 +14,15 @@ namespace Game.Controller.Player
     {
         #region Variables
         [SerializeField]
-        private float moveSpeed = 5f;
+        private GameController gameController;
         [SerializeField]
-        private float jumpForce = 5f;
+        private float moveSpeed;
         [SerializeField]
-        private float rotationSpeed = 200f;
+        private float slowSpeed;
+        [SerializeField]
+        private float jumpForce;
+        [SerializeField]
+        private float rotationSpeed;
         [SerializeField]
         private int groundLayer;
         [SerializeField]
@@ -29,11 +30,15 @@ namespace Game.Controller.Player
 
         private Rigidbody rb;
         private bool isGrounded;
+        private float speed = 5f;
+        private Quaternion targetRotation;
         #endregion
 
+        #region Unity3D methods
         void Start()
         {
-            rb = GetComponent<Rigidbody>(); // Get the rigidbody component on start
+            rb = GetComponent<Rigidbody>();
+            targetRotation = transform.rotation;
             isGrounded = true;
         }
 
@@ -49,21 +54,33 @@ namespace Game.Controller.Player
                 CheckMovement();
         }
 
+        private void OnCollisionEnter(Collision collision)
+        {
+            if (collision.gameObject.layer == groundLayer)
+                isGrounded = true;
+
+            if (collision.gameObject.layer == obstacleLayer)
+                gameController.LoseCurrentLevel();
+        }
+        #endregion
+
+        #region Custom methods
         private void CheckMovement()
         {
+            // Adjust speed by ground check
+            if (!isGrounded)
+                speed = slowSpeed;
+            else
+                speed = moveSpeed;
+
             // Move the player forward/backward and left/right
-            float horizontal = Input.GetAxis("Horizontal") * moveSpeed * Time.deltaTime;
-            float vertical = Input.GetAxis("Vertical") * moveSpeed * Time.deltaTime;
-            transform.Translate(-horizontal, 0f, -vertical);
+            transform.Translate(-(Input.GetAxis("Horizontal") * speed * Time.deltaTime), 0f, -Input.GetAxis("Vertical") * speed * Time.deltaTime);
 
-            // Rotate the player left/right based on mouse movement
-            if (Input.GetAxis("Mouse X") >= 0.01f || Input.GetAxis("Mouse X") <= -0.01f)
-            {
-                float mouseX = Input.GetAxis("Mouse X") * rotationSpeed * Time.deltaTime;
-                transform.Rotate(Vector3.up * mouseX);
-            }
+            // Smoothly interpolate rotation to target rotation
+            targetRotation *= Quaternion.Euler(Vector3.up * Input.GetAxis("Mouse X") * rotationSpeed * Time.deltaTime);
+            transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, 0.1f);
 
-            // Jump mechanic
+            // Jump
             if (Input.GetKeyDown(KeyCode.Space) && isGrounded)
             {
                 rb.AddForce(Vector3.up * jumpForce, ForceMode.Impulse);
@@ -71,10 +88,14 @@ namespace Game.Controller.Player
             }
         }
 
-        private void OnCollisionEnter(Collision collision)
+        /// <summary>
+        /// Reset player's position and rotation
+        /// </summary>
+        internal void ResetPlayerTransform(Transform _waypoint)
         {
-            if (collision.gameObject.layer == groundLayer)
-                isGrounded = true;
+            transform.SetPositionAndRotation(_waypoint.position, _waypoint.rotation);
+            targetRotation = _waypoint.rotation;
         }
+        #endregion
     }
 }

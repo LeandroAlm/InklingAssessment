@@ -7,7 +7,9 @@
 using Game.Controller.Level;
 using Game.Controller.UI;
 using System.Collections;
+using System.Linq;
 using TMPro;
+using Unity.VisualScripting;
 using UnityEditor;
 using UnityEngine;
 using static Game.Helper.Helper;
@@ -45,7 +47,7 @@ namespace Game.Controller.Game
         {
             uiController = GetComponent<UIController>();
 
-            currentLevel = 1;
+            currentLevel = 2;
             uiController.RefreshLevelUI(currentLevel);
 
             countdown.SetActive(false);
@@ -73,13 +75,93 @@ namespace Game.Controller.Game
         {
             player.SetActive(true);
 
-            levels[_level -1].SetActive(true);
+            levels[_level - 1].SetActive(true);
 
             currentLevelController = levels[_level - 1].GetComponent<LevelController>();
+            ResetCurrentLevel();
+
+            uiController.StartLevel();
 
             StartCoroutine(CountdownAnimation());
         }
 
+        /// <summary>
+        ///  Close level, used to back to menu
+        /// </summary>
+        internal void CloseLevel()
+        {
+            ResetCurrentLevel();
+            currentLevelController.gameObject.SetActive(false);
+            player.SetActive(false);
+        }
+
+        /// <summary>
+        /// Reset current level to default state
+        /// </summary>
+        private void ResetCurrentLevel()
+        {
+            currentLevelController.ResetLevel();
+        }
+
+        /// <summary>
+        /// Trigger lose animation
+        /// </summary>
+        internal void LoseCurrentLevel()
+        {
+            gameState = GameState.Menu;
+            uiController.LoseAnimation();
+            currentLevelController.gameObject.SetActive(false);
+            player.SetActive(false);
+        }
+
+        /// <summary>
+        /// Trigger win animation
+        /// </summary>
+        internal void WinCurrentLevel()
+        {
+            gameState = GameState.Menu;
+            uiController.WinAnimation();
+            currentLevelController.gameObject.SetActive(false);
+            player.SetActive(false);
+
+            currentLevel++;
+            uiController.RefreshLevelUI(currentLevel);
+        }
+
+        /// <summary>
+        /// Restarts the current level
+        /// </summary>
+        internal void RestartCurrentLevel()
+        {
+            player.SetActive(true);
+            currentLevelController.gameObject.SetActive(true);
+            ResetCurrentLevel();
+            StartCoroutine(CountdownAnimation());
+        }
+
+        /// <summary>
+        /// Starts the next level, call when finished a level
+        /// </summary>
+        internal void StartNextLevel()
+        {
+            int level = System.Array.IndexOf(levels, currentLevelController.gameObject);
+            StartLevel(level + 2);
+        }
+
+        /// <summary>
+        /// Check if there any level next of current one
+        /// </summary>
+        internal bool NextLevelExists()
+        {
+            if (System.Array.IndexOf(levels, currentLevel) + 1 < levels.Length)
+                return true;
+            else
+                return false;
+        }
+
+        /// <summary>
+        /// Animation of countdown 3 seconds before start animating the level
+        /// </summary>
         private IEnumerator CountdownAnimation()
         {
             countdown.SetActive(true);

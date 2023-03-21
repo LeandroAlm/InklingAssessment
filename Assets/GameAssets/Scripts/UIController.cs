@@ -6,6 +6,7 @@
 #region usings
 using Game.Controller.Game;
 using System;
+using TMPro;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.UI;
@@ -19,13 +20,19 @@ namespace Game.Controller.UI
         [SerializeField]
         private GameObject uiPanel;
         [SerializeField]
-        private GameObject menuOptionsPanel;
+        private GameObject loseLabel;
         [SerializeField]
-        private GameObject menuLevelOptionsPanel;
+        private GameObject winLabel;
         [SerializeField]
-        private GameObject gameOptionsPanel;
+        private GameObject nextLevelBtt;
+        [SerializeField]
+        private GameObject restartBtt;
+        [SerializeField]
+        private GameObject resumeBtt;
         [SerializeField]
         private Button[] levelsUI;
+        [SerializeField]
+        private TextMeshProUGUI levelTimerText;
 
         private GameController gameController;
         #endregion
@@ -55,9 +62,6 @@ namespace Game.Controller.UI
 
         public void OnClickLevel(int _level)
         {
-            menuOptionsPanel.SetActive(false);
-            menuLevelOptionsPanel.SetActive(false);
-            gameOptionsPanel.SetActive(true);
             uiPanel.SetActive(false);
             gameController.StartLevel(_level);
         }
@@ -82,13 +86,72 @@ namespace Game.Controller.UI
 
         public void OnClickBackMenu()
         {
-            menuOptionsPanel.SetActive(true);
-            menuLevelOptionsPanel.SetActive(false);
-            gameOptionsPanel.SetActive(false);
+            winLabel.SetActive(false);
+            loseLabel.SetActive(false);
+            gameController.CloseLevel();
+        }
 
-            // Close level
+        public void OnClickRestart()
+        {
+            uiPanel.SetActive(false);
+            winLabel.SetActive(false);
+            loseLabel.SetActive(false);
+
+            resumeBtt.SetActive(true);
+            restartBtt.SetActive(false);
+
+            gameController.RestartCurrentLevel();
+            StartLevel();
+        }
+
+        public void OnClickNextLevel()
+        {
+            winLabel.SetActive(false);
+            loseLabel.SetActive(false);
+            uiPanel.SetActive(false);
+
+            gameController.StartNextLevel();
         }
         #endregion
+
+        internal void StartLevel()
+        {
+            levelTimerText.transform.parent.gameObject.SetActive(true);
+        }
+
+        /// <summary>
+        /// Activate win label and buttons options
+        /// </summary>
+        internal void WinAnimation()
+        {
+            levelTimerText.transform.parent.gameObject.SetActive(false);
+            uiPanel.SetActive(true);
+            winLabel.SetActive(true);
+
+            if (gameController.NextLevelExists())
+                nextLevelBtt.SetActive(true);
+
+            resumeBtt.SetActive(false);
+
+            Cursor.lockState = CursorLockMode.None;
+            Cursor.visible = true;
+        }
+
+        /// <summary>
+        /// Activate lose label and buttons options
+        /// </summary>
+        internal void LoseAnimation()
+        {
+            levelTimerText.transform.parent.gameObject.SetActive(false);
+            loseLabel.SetActive(true);
+            uiPanel.SetActive(true);
+            restartBtt.SetActive(true);
+
+            resumeBtt.SetActive(false);
+
+            Cursor.lockState = CursorLockMode.None;
+            Cursor.visible = true;
+        }
 
         /// <summary>
         /// handle UI buttons to select level
@@ -105,9 +168,12 @@ namespace Game.Controller.UI
             }
         }
 
+        /// <summary>
+        /// Refresh level timer
+        /// </summary>
         internal void RefreshLevelDuration(int _value)
         {
-            
+            levelTimerText.text = "LEVEL TIME: " + _value;
         }
         #endregion
     }

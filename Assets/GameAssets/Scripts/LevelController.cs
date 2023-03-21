@@ -4,7 +4,9 @@
 // Date: 20/03/2023
 
 #region usings
+using Game.Controller.Game;
 using Game.Controller.Obstacle;
+using Game.Controller.Player;
 using Game.Controller.UI;
 using UnityEngine;
 #endregion
@@ -16,7 +18,6 @@ namespace Game.Controller.Level
         #region Variables
         [SerializeField]
         private float duration;
-
         [SerializeField]
         private Transform player;
         [SerializeField]
@@ -25,6 +26,8 @@ namespace Game.Controller.Level
         private ObstacleController[] obstacles;
         [SerializeField]
         private UIController uiController;
+        [SerializeField]
+        private GameController gameController;
 
         private bool levelStart = false;
         private float timer;
@@ -34,11 +37,6 @@ namespace Game.Controller.Level
         void Start()
         {
 
-        }
-
-        private void OnEnable()
-        {
-            player = playerWaypoint;
         }
 
         void Update()
@@ -52,10 +50,13 @@ namespace Game.Controller.Level
                 if (timer <= 0.0f)
                 {
                     // Ended level
+                    gameController.WinCurrentLevel();
                 }
             }
         }
+        #endregion
 
+        #region Custom methods
         /// <summary>
         /// Triggers the level obstacles after a countdown
         /// </summary>
@@ -66,6 +67,22 @@ namespace Game.Controller.Level
 
             foreach (ObstacleController obstacle in obstacles)
                 obstacle.obstacleMove = true;
+        }
+
+        /// <summary>
+        /// Resets the level to default state
+        /// </summary>
+        internal void ResetLevel()
+        {
+            // reset all obstacles
+            foreach (ObstacleController obstacle in obstacles)
+                obstacle.ResetMovement();
+
+            levelStart = false;
+
+            player.GetComponent<PlayerController>().ResetPlayerTransform(playerWaypoint);
+
+            uiController.RefreshLevelDuration((int)duration);
         }
         #endregion
     }
