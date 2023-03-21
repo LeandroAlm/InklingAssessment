@@ -49,9 +49,10 @@ namespace Game.Controller.Obstacle
                         transform.position = Vector3.MoveTowards(transform.position, waypoints[currentWaypoint].position, Time.deltaTime * moveSpeed);
                     }
                 }
-                else if (spinAround)
+                
+                if (spinAround)
                 {
-                    transform.Rotate(rotationSpeed * Time.deltaTime, 0f, 0f);
+                    transform.Rotate(0f, rotationSpeed * Time.deltaTime, 0f);
                 }
             }
         }

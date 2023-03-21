@@ -14,8 +14,7 @@ namespace Game.Helper
         public enum GameState
         {
             Menu,
-            Play,
-            Pause
+            Play
         }
     }
 }

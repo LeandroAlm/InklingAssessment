@@ -41,7 +41,7 @@ namespace Game.Controller.Level
 
         void Update()
         {
-            if (levelStart)
+            if (levelStart && GameController.gameState == Helper.Helper.GameState.Play)
             {
                 timer -= Time.deltaTime;
 

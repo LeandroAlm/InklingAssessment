@@ -20,6 +20,8 @@ namespace Game.Controller.UI
         [SerializeField]
         private GameObject uiPanel;
         [SerializeField]
+        private Transform uiInGamePanel;
+        [SerializeField]
         private GameObject loseLabel;
         [SerializeField]
         private GameObject winLabel;
@@ -88,24 +90,24 @@ namespace Game.Controller.UI
         {
             winLabel.SetActive(false);
             loseLabel.SetActive(false);
+            levelTimerText.transform.parent.gameObject.SetActive(false);
             gameController.CloseLevel();
         }
 
         public void OnClickRestart()
         {
+            gameController.RestartCurrentLevel();
+
             uiPanel.SetActive(false);
             winLabel.SetActive(false);
             loseLabel.SetActive(false);
 
-            resumeBtt.SetActive(true);
-            restartBtt.SetActive(false);
-
-            gameController.RestartCurrentLevel();
             StartLevel();
         }
 
         public void OnClickNextLevel()
         {
+            nextLevelBtt.SetActive(false);
             winLabel.SetActive(false);
             loseLabel.SetActive(false);
             uiPanel.SetActive(false);
@@ -117,6 +119,16 @@ namespace Game.Controller.UI
         internal void StartLevel()
         {
             levelTimerText.transform.parent.gameObject.SetActive(true);
+
+            for (int i = 0; i < uiInGamePanel.childCount; i++)
+            {
+                GameObject obj = uiInGamePanel.GetChild(i).gameObject;
+                if (obj != nextLevelBtt
+                    && obj != restartBtt)
+                    obj.SetActive(true);
+                else
+                    obj.SetActive(false);
+            }
         }
 
         /// <summary>
@@ -174,6 +186,11 @@ namespace Game.Controller.UI
         internal void RefreshLevelDuration(int _value)
         {
             levelTimerText.text = "LEVEL TIME: " + _value;
+        }
+
+        public void InGameMenu(int[] num_1)
+        {
+
         }
         #endregion
     }

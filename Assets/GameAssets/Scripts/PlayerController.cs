@@ -39,13 +39,13 @@ namespace Game.Controller.Player
         {
             rb = GetComponent<Rigidbody>();
             targetRotation = transform.rotation;
-            isGrounded = true;
         }
 
         private void OnEnable()
         {
             Cursor.lockState = CursorLockMode.Locked;
             Cursor.visible = false;
+            isGrounded = true;
         }
 
         void Update()
@@ -56,11 +56,11 @@ namespace Game.Controller.Player
 
         private void OnCollisionEnter(Collision collision)
         {
-            if (collision.gameObject.layer == groundLayer)
-                isGrounded = true;
-
             if (collision.gameObject.layer == obstacleLayer)
                 gameController.LoseCurrentLevel();
+
+            if (collision.gameObject.layer == groundLayer)
+                isGrounded = true;
         }
         #endregion
 

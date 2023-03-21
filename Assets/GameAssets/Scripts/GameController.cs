@@ -30,6 +30,7 @@ namespace Game.Controller.Game
         private UIController uiController;
         private int currentLevel;
         private LevelController currentLevelController;
+        private bool waitingToRestart;
 
         public static GameState gameState;
         #endregion
@@ -38,16 +39,16 @@ namespace Game.Controller.Game
         private void Awake()
         {
             for (int i = 0; i < levels.Length; i++)
-            {
                 levels[i].SetActive(false);
-            }  
+
+            player.SetActive(false);
         }
 
         void Start()
         {
             uiController = GetComponent<UIController>();
 
-            currentLevel = 2;
+            currentLevel = 1;
             uiController.RefreshLevelUI(currentLevel);
 
             countdown.SetActive(false);
@@ -110,8 +111,7 @@ namespace Game.Controller.Game
         {
             gameState = GameState.Menu;
             uiController.LoseAnimation();
-            currentLevelController.gameObject.SetActive(false);
-            player.SetActive(false);
+            StartCoroutine(LoseWaitTime());
         }
 
         /// <summary>
@@ -133,6 +133,14 @@ namespace Game.Controller.Game
         /// </summary>
         internal void RestartCurrentLevel()
         {
+            if (waitingToRestart)
+            {
+                waitingToRestart = false;
+                currentLevelController.gameObject.SetActive(false);
+                player.SetActive(false);
+                StopAllCoroutines();
+            }
+
             player.SetActive(true);
             currentLevelController.gameObject.SetActive(true);
             ResetCurrentLevel();
@@ -153,7 +161,7 @@ namespace Game.Controller.Game
         /// </summary>
         internal bool NextLevelExists()
         {
-            if (System.Array.IndexOf(levels, currentLevel) + 1 < levels.Length)
+            if (System.Array.IndexOf(levels, currentLevelController.gameObject) + 1 < levels.Length)
                 return true;
             else
                 return false;
@@ -177,6 +185,20 @@ namespace Game.Controller.Game
             gameState = GameState.Play;
             countdown.SetActive(false);
             currentLevelController.TriggerTimeAndObstacles();
+        }
+
+        /// <summary>
+        /// Delay to be possible see the moment of collider
+        /// </summary>
+        private IEnumerator LoseWaitTime()
+        {
+            waitingToRestart = true;
+
+            yield return new WaitForSeconds(1f);
+
+            waitingToRestart = false;
+            currentLevelController.gameObject.SetActive(false);
+            player.SetActive(false);
         }
         #endregion
     }
